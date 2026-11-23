@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rattib wa Takallam — Media AR Qawa'id Nahwu (Gerakan Tangan)</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{
+    --bg:#0d1714; --panel:rgba(10,22,19,.74); --line:rgba(255,255,255,.14);
+    --text:#eef6f2; --muted:#a8bdb4; --accent:#e9b949; --ok:#3ccf8e; --bad:#ff6b6b; --card:#fffaf0; --ink:#1d2a25;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Jakarta,"Plus Jakarta Sans",system-ui,sans-serif}
+  body.mode-dark{background:radial-gradient(1200px 700px at 50% 30%,#1b3a30,#0b1411 70%)}
+
+  #video:not(.on){display:none}
+  #video{position:fixed;transform:scaleX(-1);object-fit:cover;background:#000;z-index:0}
+  body.mode-ar #video{inset:0;width:100vw;height:100vh;filter:brightness(.85) saturate(1.05)}
+  body.mode-dark #video{right:18px;bottom:18px;width:220px;height:124px;border-radius:12px;border:2px solid var(--line);z-index:6}
+  #skeleton{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:7}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:5;padding:16px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+         background:linear-gradient(180deg,rgba(0,0,0,.6),transparent)}
+  .prompt small{display:block;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .prompt h1{margin:4px 0 0;font-size:clamp(20px,2.5vw,30px);font-weight:800}
+  .prompt h1 span{color:var(--accent)}
+  .stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .chip{background:var(--panel);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:14px;white-space:nowrap;backdrop-filter:blur(6px)}
+  #status.open{border-color:var(--ok)} #status.closed{border-color:var(--accent)} #status.none{border-color:var(--bad)}
+
+  #layer{position:fixed;inset:0;z-index:4}
+  .card{position:absolute;transform:translate(-50%,-50%);background:var(--card);color:var(--ink);
+        font-family:Naskh,"Noto Naskh Arabic",serif;font-weight:700;font-size:clamp(26px,3.2vw,44px);line-height:1.5;
+        padding:6px 24px 10px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);user-select:none;cursor:grab;
+        transition:box-shadow .15s, outline-color .15s, scale .15s;outline:4px solid transparent;direction:rtl;touch-action:none;white-space:nowrap}
+  body.kelompok .card{font-size:clamp(22px,2.6vw,36px);padding:4px 18px 8px}
+  .card.anim{transition:left .45s cubic-bezier(.2,.8,.2,1),top .45s cubic-bezier(.2,.8,.2,1),box-shadow .15s,outline-color .15s,scale .15s}
+  .card.hover{outline-color:var(--accent);scale:1.06}
+  .card.held{outline-color:var(--accent);scale:1.12;box-shadow:0 22px 50px rgba(0,0,0,.5);z-index:10;cursor:grabbing}
+  .card.ok{outline-color:var(--ok);background:#e8fff3}
+  .card.bad{outline-color:var(--bad);background:#fff0f0;animation:shake .4s}
+  @keyframes shake{25%{translate:-8px 0}50%{translate:8px 0}75%{translate:-5px 0}}
+
+  #answer{position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px}
+  #answer .label{font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;background:var(--panel);padding:4px 12px;border-radius:999px}
+  #slots{display:flex;gap:12px;direction:rtl;padding:14px;border-radius:22px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px)}
+  .slot{width:clamp(110px,13vw,200px);height:clamp(70px,9vh,94px);border:3px dashed rgba(255,255,255,.35);border-radius:16px;
+        display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-size:22px;transition:border-color .15s,background .15s}
+  .slot.target{border-color:var(--accent);background:rgba(233,185,73,.15)}
+  .slot.filled{border-style:solid;border-color:rgba(255,255,255,.2);color:transparent}
+  body.kelompok .slot{width:clamp(220px,27vw,380px);height:clamp(150px,22vh,210px);flex-direction:column;justify-content:flex-start;padding-top:6px;color:var(--accent);
+        font-family:Naskh,"Noto Naskh Arabic",serif;font-size:26px;font-weight:700}
+  body.kelompok .slot.filled{border-style:dashed;color:var(--accent)}
+
+  #cursor{position:fixed;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:4px solid #fff;z-index:20;pointer-events:none;
+          box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 24px rgba(255,255,255,.5);display:none;transition:background .1s, transform .1s}
+  #cursor.closed{background:rgba(233,185,73,.85);border-color:var(--accent);transform:scale(.75)}
+
+  #toolbar{position:fixed;left:18px;bottom:18px;z-index:8;display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:calc(100vw - 280px)}
+  button{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:9px 14px;border-radius:12px;cursor:pointer;backdrop-filter:blur(6px)}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:#1d1a10;border-color:var(--accent)}
+  .sens{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:12px;font-size:13px}
+  .sens input{accent-color:var(--accent);width:110px}
+
+  #banner{position:fixed;left:50%;top:11vh;transform:translate(-50%,-10px);z-index:15;padding:14px 28px;border-radius:18px;font-size:22px;font-weight:800;
+          opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;text-align:center;max-width:90vw}
+  #banner.show{opacity:1;transform:translate(-50%,0)}
+  #banner.ok{background:var(--ok);color:#06281a} #banner.bad{background:var(--bad);color:#2b0606}
+  #banner .ar{display:block;font-family:Naskh,"Noto Naskh Arabic",serif;font-size:32px;direction:rtl}
+
+  .overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(5,12,10,.84);backdrop-filter:blur(8px);padding:20px}
+  .overlay[hidden]{display:none}
+  .box{max-width:680px;max-height:92vh;overflow:auto;background:#11211c;border:1px solid var(--line);border-radius:24px;padding:30px 32px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .box.wide{max-width:920px}
+  .box h2{margin:0 0 6px;font-size:26px}
+  .box .ar-title{font-family:Naskh,"Noto Naskh Arabic",serif;font-size:30px;color:var(--accent);direction:rtl;margin:0 0 12px}
+  .box p,.box li{color:var(--muted);line-height:1.6;font-size:15px}
+  .box ol{padding-left:20px;margin:10px 0 18px}
+  .box .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .box .note{font-size:13px;margin-top:14px}
+  #loadmsg{color:var(--accent);font-size:14px;margin-top:12px;min-height:20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
+  .bab{text-align:left;padding:14px 16px;border-radius:16px;display:flex;flex-direction:column;gap:4px}
+  .bab b{color:var(--accent);font-size:13px;letter-spacing:.06em}
+  .bab .ar{font-family:Naskh,"Noto Naskh Arabic",serif;font-size:22px;direction:rtl;text-align:right;color:var(--text)}
+  .bab span{font-size:13px;color:var(--muted);font-weight:400}
+</style>
+</head>
+<body class="mode-ar">
+
+<video id="video" playsinline muted></video>
+<canvas id="skeleton"></canvas>
+
+<header>
+  <div class="prompt">
+    <small id="qnum">—</small>
+    <h1 id="qhead"><span id="qtext">…</span></h1>
+  </div>
+  <div class="stats">
+    <div class="chip" id="status">Kamera belum aktif</div>
+    <div class="chip">Skor: <b id="score">0</b></div>
+  </div>
+</header>
+
+<div id="layer"></div>
+
+<div id="answer">
+  <div class="label" id="answerLabel">Jawaban (dibaca dari kanan ke kiri ←)</div>
+  <div id="slots"></div>
+</div>
+
+<div id="cursor"></div>
+<div id="banner"></div>
+
+<div id="toolbar">
+  <a href="index.html" style="text-decoration:none"><button>📖 Kembali ke Buku</button></a>
+  <button id="btnMenu">☰ Pilih Bab</button>
+  <button id="btnMode" title="Ganti tampilan">🎥 Mode: AR kamera penuh</button>
+  <label class="sens" title="Geser ke kanan jika genggaman sulit terdeteksi">✊ Kepekaan genggam
+    <input id="sens" type="range" min="-0.3" max="0.3" step="0.05" value="0"></label>
+  <button id="btnReset">↺ Ulang soal</button>
+  <button id="btnSpeak">🔊 Dengarkan</button>
+  <button id="btnSkip">Lewati →</button>
+</div>
+
+<!-- layar awal -->
+<div class="overlay" id="startOv">
+  <div class="box">
+    <p class="ar-title">رَتِّبْ وَتَكَلَّمْ</p>
+    <h2>Media AR Qawā'id Nahwu dengan Gerakan Tangan</h2>
+    <p>Pendamping buku <i>Rattib wa Takallam</i>. Kartu kata Arab melayang di atas gambar kamera; ambil dan susun kartu dengan gerakan tangan, tanpa menyentuh laptop.</p>
+    <ol>
+      <li>Berdiri/duduk sekitar <b>0,5–1,5 meter</b> di depan webcam, di ruangan yang cukup terang.</li>
+      <li>Arahkan lingkaran putih ke kartu, lalu <b>✊ genggam</b> untuk mengambil.</li>
+      <li>Bawa ke kotak jawaban, lalu <b>🖐️ buka tangan</b> untuk melepas.</li>
+      <li>Kotak jawaban diisi <b>dari kanan ke kiri</b>. Pada AR-1, masukkan kartu ke keranjang isim/fi'il/harf.</li>
+    </ol>
+    <div class="row">
+      <button class="primary" id="btnCam">🎥 Mulai dengan Kamera</button>
+      <button id="btnMouse">🖱️ Coba dengan Mouse</button>
+    </div>
+    <div id="loadmsg"></div>
+    <p class="note">Buka di Google Chrome / Edge dan izinkan akses kamera. Butuh internet saat pertama kali dibuka (memuat model pelacak tangan MediaPipe).</p>
+  </div>
+</div>
+
+<!-- menu bab -->
+<div class="overlay" id="menuOv" hidden>
+  <div class="box wide">
+    <h2>Pilih Bab (Kode AR)</h2>
+    <p>Pilih sesuai kode AR yang tertera di buku.</p>
+    <div class="grid" id="babGrid"></div>
+  </div>
+</div>
+
+<!-- selesai bab -->
+<div class="overlay" id="endOv" hidden>
+  <div class="box" style="text-align:center">
+    <p class="ar-title">أَحْسَنْتَ!</p>
+    <h2 id="endTitle">Bab selesai!</h2>
+    <p>Skor bab ini: <b id="finalScore" style="color:var(--accent);font-size:22px">0</b></p>
+    <div class="row" style="justify-content:center">
+      <button id="btnAgain">↺ Ulangi bab</button>
+      <button class="primary" id="btnNextBab">Bab berikutnya →</button>
+      <button id="btnToMenu">☰ Pilih bab</button>
+    </div>
+  </div>
+</div>
+
+<script src="ar-data.js"></script>
+<script type="module">
+/* =====================================================================
+   BANK SOAL — sama persis dengan buku "Rattib wa Takallam".
+   mode "susun"    : words = urutan BENAR (kata pertama = paling kanan), extra = kartu pengecoh
+   mode "kelompok" : cards = [kata, indeks keranjang], bins = nama keranjang (kanan → kiri)
+   Dosen boleh menambah/mengubah soal di sini.
+   ===================================================================== */
+const CHAPTERS = window.AR_CHAPTERS;
+
+/* ---------------- state ---------------- */
+const $ = s => document.querySelector(s);
+const layer=$("#layer"), slotsEl=$("#slots"), cursorEl=$("#cursor"), statusEl=$("#status");
+const video=$("#video"), canvas=$("#skeleton"), ctx=canvas.getContext("2d");
+let ch=0, qi=0, score=0, cards=[], slots=[], held=null, hoverCard=null, locked=false;
+let handMode=false, landmarker=null, lastVideoTime=-1, started=false;
+let cur={x:innerWidth/2,y:innerHeight/2,seen:false}, isClosed=false, openEMA=1.8, lastSeen=0, sensShift=0;
+const CH=()=>CHAPTERS[ch], Q=()=>CH().items[qi], isGroup=()=>CH().mode==="kelompok";
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------------- menu ---------------- */
+function buildMenu(){
+  const g=$("#babGrid"); g.innerHTML="";
+  CHAPTERS.forEach((c,i)=>{
+    const b=document.createElement("button"); b.className="bab";
+    b.innerHTML=`<b>${c.code} · BAB ${i+1}</b><div class="ar">${c.ar}</div><span>${c.title}${c.mode==="kelompok"?" — mode kelompok":""}</span>`;
+    b.onclick=()=>startChapter(i); g.appendChild(b);
+  });
+}
+function openMenu(){ $("#endOv").hidden=true; $("#menuOv").hidden=false; }
+function startChapter(i){
+  ch=i; qi=0; score=0; $("#score").textContent=0;
+  $("#menuOv").hidden=true; $("#endOv").hidden=true;
+  try{history.replaceState(null,"","#"+CH().code.toLowerCase())}catch(e){}
+  loadQuestion();
+}
+
+/* ---------------- game setup ---------------- */
+function loadQuestion(){
+  locked=false; held=null; hoverCard=null;
+  const c=CH(), q=Q();
+  document.body.classList.toggle("kelompok",isGroup());
+  $("#qnum").textContent=`${c.code} · Bab ${ch+1}: ${c.title} — ${isGroup()?q.id:"Soal "+(qi+1)} / ${c.items.length}`;
+  $("#qhead").innerHTML = isGroup()
+     ? `Kelompokkan: <span>isim, fi'il, atau harf?</span>`
+     : `Susun kalimat: <span id="qtext"></span>`;
+  if(!isGroup()) $("#qtext").textContent=q.id;
+  $("#answerLabel").textContent = isGroup() ? "Keranjang (masukkan setiap kartu ke jenisnya)" : "Jawaban (dibaca dari kanan ke kiri ←)";
+  layer.innerHTML=""; slotsEl.innerHTML="";
+  const labels = isGroup()? c.bins : q.words.map((_,i)=>String(i+1));
+  slots=labels.map(t=>{const d=document.createElement("div");d.className="slot";d.textContent=t;slotsEl.appendChild(d);return {el:d,cards:[]}});
+  const list = isGroup()? q.cards.map(([w,cat])=>({w,cat})) : [...q.words.map(w=>({w})),...q.extra.map(w=>({w}))];
+  cards=shuffle(list).map(o=>{
+    const el=document.createElement("div");el.className="card";el.textContent=o.w;layer.appendChild(el);
+    const k={el,word:o.w,cat:o.cat,x:0,y:0,hx:0,hy:0,slot:-1};
+    el.addEventListener("pointerdown",e=>{if(locked||handMode&&cur.seen)return;e.preventDefault();el.setPointerCapture(e.pointerId);grab(k);moveHeld(e.clientX,e.clientY)});
+    el.addEventListener("pointermove",e=>{if(held===k)moveHeld(e.clientX,e.clientY)});
+    el.addEventListener("pointerup",()=>{if(held===k)drop()});
+    return k;
+  });
+  layoutHomes(); cards.forEach(k=>place(k,k.hx,k.hy,false));
+}
+
+function layoutHomes(){
+  const n=cards.length, W=innerWidth, H=innerHeight;
+  const top=H*0.27, bottom=isGroup()?H*0.47:H*0.52, perRow=n>4?Math.ceil(n/2):n, rows=Math.ceil(n/perRow);
+  cards.forEach((k,i)=>{
+    const r=Math.floor(i/perRow), j=i%perRow, cols=Math.min(perRow,n-r*perRow);
+    k.hx=W*(0.5+(j-(cols-1)/2)*Math.min(0.2,0.8/cols)) + (Math.random()*30-15);
+    k.hy=(rows===1?(top+bottom)/2:top+(bottom-top)*r/(rows-1)) + (Math.random()*20-10);
+  });
+}
+function place(k,x,y,anim=true){ k.x=x;k.y=y; k.el.classList.toggle("anim",anim); k.el.style.left=x+"px"; k.el.style.top=y+"px"; }
+function slotRect(i){return slots[i].el.getBoundingClientRect()}
+function slotAt(x,y){return slots.findIndex(s=>{const r=s.el.getBoundingClientRect();return x>r.left-20&&x<r.right+20&&y>r.top-30&&y<r.bottom+30})}
+function cardAt(x,y){
+  let best=null,bd=1e9;
+  for(const k of cards){const r=k.el.getBoundingClientRect();
+    if(x>r.left-25&&x<r.right+25&&y>r.top-25&&y<r.bottom+25){const d=Math.hypot(x-k.x,y-k.y);if(d<bd){bd=d;best=k}}}
+  return best;
+}
+// susun: satu kartu di tengah kotak; kelompok: kartu ditata dalam grid di dalam keranjang
+function layoutSlot(i,anim=true){
+  const r=slotRect(i), list=slots[i].cards;
+  slots[i].el.classList.toggle("filled",list.length>0);
+  if(!isGroup()){ if(list[0]) place(list[0],r.left+r.width/2,r.top+r.height/2,anim); return; }
+  const cols=2, rowH=Math.min(58,(r.height-40)/Math.max(1,Math.ceil(list.length/cols)));
+  list.forEach((k,j)=>{
+    const c=j%cols, row=Math.floor(j/cols);
+    place(k, r.left+r.width*(c===0?0.72:0.28), r.top+44+rowH*row+rowH/2, anim);
+  });
+}
+
+/* ---------------- grab / move / drop ---------------- */
+function grab(k){
+  if(locked||!k)return;
+  held=k;
+  if(k.slot>=0){const s=k.slot; slots[s].cards=slots[s].cards.filter(x=>x!==k); k.slot=-1; layoutSlot(s)}
+  k.el.classList.remove("ok","bad","hover"); k.el.classList.add("held");
+}
+function moveHeld(x,y){
+  if(!held)return; place(held,x,y,false);
+  const si=slotAt(x,y); slots.forEach((s,i)=>s.el.classList.toggle("target",i===si));
+}
+function drop(){
+  if(!held)return; const k=held; held=null; k.el.classList.remove("held");
+  slots.forEach(s=>s.el.classList.remove("target"));
+  const si=slotAt(k.x,k.y);
+  if(si>=0){
+    if(!isGroup() && slots[si].cards[0]){const prev=slots[si].cards[0]; prev.slot=-1; slots[si].cards=[]; place(prev,prev.hx,prev.hy)}
+    slots[si].cards.push(k); k.slot=si; layoutSlot(si);
+    const done = isGroup()? cards.every(c=>c.slot>=0) : slots.every(s=>s.cards.length);
+    if(done) setTimeout(check,350);
+  }else{
+    place(k,Math.max(80,Math.min(innerWidth-80,k.x)),Math.max(130,Math.min(innerHeight-80,k.y)));
+  }
+}
+
+/* ---------------- checking ---------------- */
+function check(){
+  let allOk=true;
+  if(isGroup()){
+    cards.forEach(k=>{const ok=k.cat===k.slot;k.el.classList.add(ok?"ok":"bad");if(!ok)allOk=false});
+  }else{
+    const q=Q(); slots.forEach((s,i)=>{const ok=s.cards[0].word===q.words[i];s.cards[0].el.classList.add(ok?"ok":"bad");if(!ok)allOk=false});
+  }
+  if(allOk){
+    locked=true; score++; $("#score").textContent=score;
+    if(isGroup()) banner(`<span class="ar">صَحِيْحٌ!</span>Benar! Semua kata masuk ke keranjang yang tepat.`,"ok",2400);
+    else { const q=Q(); banner(`<span class="ar">صَحِيْحٌ! ${q.words.join(" ")}</span>Benar! ${q.id}`,"ok",2600); speak(q.words.join(" ")); }
+    setTimeout(next,2800);
+  }else{
+    banner("Belum tepat — coba lagi 💪","bad",1400);
+    setTimeout(()=>{
+      cards.filter(k=>k.el.classList.contains("bad")).forEach(k=>{
+        const s=k.slot; k.el.classList.remove("bad");
+        if(s>=0){slots[s].cards=slots[s].cards.filter(x=>x!==k); k.slot=-1; layoutSlot(s)}
+        place(k,k.hx,k.hy);
+      });
+    },1100);
+  }
+}
+function next(){
+  qi++;
+  if(qi>=CH().items.length){
+    $("#endTitle").textContent=`${CH().code} — Bab ${ch+1} selesai!`;
+    $("#finalScore").textContent=`${score} / ${CH().items.length}`;
+    $("#btnNextBab").hidden = ch>=CHAPTERS.length-1;
+    $("#endOv").hidden=false;
+  } else loadQuestion();
+}
+let bannerT; function banner(html,cls,ms){const b=$("#banner");b.innerHTML=html;b.className="show "+cls;clearTimeout(bannerT);bannerT=setTimeout(()=>b.className=cls,ms)}
+
+function speak(text){
+  try{const u=new SpeechSynthesisUtterance(text);u.lang="ar-SA";u.rate=.8;
+    const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar"));if(v)u.voice=v;
+    speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
+}
+
+/* ---------------- hand tracking (MediaPipe) ---------------- */
+async function startCamera(){
+  const msg=$("#loadmsg");
+  try{
+    msg.textContent="Meminta izin kamera…";
+    const stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"},audio:false});
+    video.srcObject=stream; video.classList.add("on"); await video.play();
+    msg.textContent="Memuat model pelacak tangan (± 5–10 detik)…";
+    const V="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+    const {FilesetResolver,HandLandmarker}=await import(V+"/vision_bundle.mjs");
+    const fileset=await FilesetResolver.forVisionTasks(V+"/wasm");
+    const opts=d=>({baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:d},
+                    runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.5,minTrackingConfidence:.5});
+    try{landmarker=await HandLandmarker.createFromOptions(fileset,opts("GPU"))}
+    catch(e){landmarker=await HandLandmarker.createFromOptions(fileset,opts("CPU"))}
+    handMode=true; cursorEl.style.display="block"; afterStart(); requestAnimationFrame(loop);
+  }catch(err){
+    console.error(err);
+    msg.textContent="⚠️ Gagal: "+(err.name==="NotAllowedError"?"izin kamera ditolak.":err.message||err)+" Anda tetap bisa mencoba dengan mouse.";
+  }
+}
+function afterStart(){
+  $("#startOv").hidden=true; started=true;
+  const m=(location.hash||"").match(/ar-(\d)/i), n=m?parseInt(m[1])-1:-1;
+  if(n>=0&&n<CHAPTERS.length) startChapter(n); else openMenu();
+}
+
+function toScreen(p){
+  const r=video.getBoundingClientRect(), vw=video.videoWidth||1280, vh=video.videoHeight||720;
+  const s=Math.max(r.width/vw,r.height/vh), dw=vw*s, dh=vh*s;
+  return {x:r.left+(r.width-dw)/2+(1-p.x)*dw, y:r.top+(r.height-dh)/2+p.y*dh};
+}
+const BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function openness(lm){
+  const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y,(lm[a].z-lm[b].z)*.5);
+  const palm=d(0,9)||1e-6; return [8,12,16,20].reduce((s,t)=>s+d(t,0),0)/4/palm;
+}
+function loop(){
+  requestAnimationFrame(loop);
+  canvas.width=innerWidth; canvas.height=innerHeight; ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!landmarker||video.readyState<2)return;
+  if(video.currentTime!==lastVideoTime){
+    lastVideoTime=video.currentTime;
+    const res=landmarker.detectForVideo(video,performance.now());
+    const lm=res.landmarks&&res.landmarks[0];
+    if(lm){ lastSeen=performance.now(); onHand(lm) }
+  }
+  if(performance.now()-lastSeen>400){
+    if(cur.seen){cur.seen=false; if(held)drop(); setStatus("none","✋ Tangan tidak terlihat")}
+    cursorEl.style.opacity=.35;
+  }
+}
+function onHand(lm){
+  const pts=lm.map(toScreen);
+  ctx.lineWidth=3; ctx.strokeStyle="rgba(233,185,73,.8)";
+  BONES.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(pts[a].x,pts[a].y);ctx.lineTo(pts[b].x,pts[b].y);ctx.stroke()});
+  ctx.fillStyle="#fff"; pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill()});
+  let t;
+  if(document.body.classList.contains("mode-ar")){
+    const p=toScreen(lm[9]), k=1.25;
+    t={x:innerWidth/2+(p.x-innerWidth/2)*k, y:innerHeight/2+(p.y-innerHeight/2)*k};
+  }else{
+    t={x:((1-lm[9].x)-.15)/.7*innerWidth, y:(lm[9].y-.12)/.7*innerHeight};
+  }
+  t.x=Math.max(0,Math.min(innerWidth,t.x)); t.y=Math.max(0,Math.min(innerHeight,t.y));
+  const a=cur.seen?.45:1; cur.x+=(t.x-cur.x)*a; cur.y+=(t.y-cur.y)*a; cur.seen=true;
+  cursorEl.style.opacity=1; cursorEl.style.left=cur.x+"px"; cursorEl.style.top=cur.y+"px";
+  const overlayOpen=!$("#menuOv").hidden||!$("#endOv").hidden;
+  openEMA+=(openness(lm)-openEMA)*.5;
+  const closeT=1.35+sensShift, openT=1.6+sensShift;
+  if(!isClosed&&openEMA<closeT){isClosed=true; if(!held&&!overlayOpen)grab(cardAt(cur.x,cur.y))}
+  else if(isClosed&&openEMA>openT){isClosed=false; if(held)drop()}
+  cursorEl.classList.toggle("closed",isClosed);
+  setStatus(isClosed?"closed":"open", isClosed?"✊ Genggam":"🖐️ Terbuka");
+  if(held)moveHeld(cur.x,cur.y);
+  else{const h=(isClosed||overlayOpen)?null:cardAt(cur.x,cur.y);
+    if(h!==hoverCard){hoverCard&&hoverCard.el.classList.remove("hover");hoverCard=h;h&&h.el.classList.add("hover")}}
+}
+function setStatus(cls,txt){statusEl.className="chip "+cls;statusEl.textContent=txt}
+
+/* ---------------- UI ---------------- */
+$("#btnCam").onclick=startCamera;
+$("#btnMouse").onclick=()=>{document.body.classList.replace("mode-ar","mode-dark");$("#btnMode").textContent="🌙 Mode: latar gelap";setStatus("none","🖱️ Mode mouse");afterStart()};
+$("#btnMode").onclick=()=>{
+  const ar=document.body.classList.toggle("mode-ar"); document.body.classList.toggle("mode-dark",!ar);
+  $("#btnMode").textContent=ar?"🎥 Mode: AR kamera penuh":"🌙 Mode: latar gelap + kamera kecil";
+};
+$("#sens").oninput=e=>sensShift=parseFloat(e.target.value);
+$("#btnMenu").onclick=openMenu;
+$("#btnReset").onclick=()=>loadQuestion();
+$("#btnSkip").onclick=()=>{if(!locked)next()};
+$("#btnSpeak").onclick=()=>{ if(isGroup()) speak(Q().cards.map(c=>c[0]).join("، ")); else speak(Q().words.join(" ")); };
+$("#btnAgain").onclick=()=>startChapter(ch);
+$("#btnNextBab").onclick=()=>startChapter(Math.min(ch+1,CHAPTERS.length-1));
+$("#btnToMenu").onclick=openMenu;
+addEventListener("resize",()=>{layoutHomes();cards.forEach(k=>{if(k.slot<0)place(k,k.hx,k.hy,false)});slots.forEach((_,i)=>layoutSlot(i,false))});
+try{speechSynthesis.getVoices()}catch(e){}
+window.RWT={CHAPTERS}; // untuk pengujian
+buildMenu(); loadQuestion();
+</script>
+</body>
+</html>

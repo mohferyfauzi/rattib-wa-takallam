@@ -1,0 +1,40 @@
+mE-Book "Rattib wa Takallam" — Qawa'id Nahwu Berbasis Augmented Reality
+=====================================================================
+
+ISI FOLDER
+- index.html      : mE-Book (teks, video, audio, murattal, latihan & evaluasi interaktif)
+- ar.html         : Media AR gerakan tangan (AR-1 s.d. AR-8)
+- ar-data.js      : Bank soal Aktivitas AR (boleh diubah)
+- content.js      : Isi teks buku per bab (boleh diubah)
+- video/          : 8 video animasi materi (bab1.mp4 ... bab8.mp4)
+- fonts/          : Font Arab (Noto Naskh Arabic) dan Latin (Plus Jakarta Sans)
+
+CARA MEMBUKA DI LAPTOP
+1. Ekstrak (unzip) seluruh folder. Jangan membuka langsung dari dalam file zip.
+2. Klik dua kali index.html, lalu buka dengan Google Chrome atau Microsoft Edge.
+3. Untuk Aktivitas AR, klik tombol "Buka Aktivitas AR-n" di tiap bab, lalu izinkan kamera.
+4. Audio murattal dan model pelacak tangan butuh koneksi internet.
+
+ALAMAT RESMI (sudah tertanam di semua kode QR buku)
+- mE-Book       : https://mohferyfauzi.github.io/rattib-wa-takallam/
+- Media AR      : https://mohferyfauzi.github.io/rattib-wa-takallam/ar.html
+- Bab n         : .../#bab-1 ... #bab-8
+- Video bab n   : .../video/bab1.mp4 ... bab8.mp4
+- AR bab n      : .../ar.html#ar-1 ... #ar-8
+
+CARA MENGUNGGAH KE GITHUB (sekali saja)
+1. Buka https://github.com/mohferyfauzi/rattib-wa-takallam (login dulu).
+2. Klik tautan "uploading an existing file".
+3. Seret SEMUA ISI folder ini (index.html, ar.html, ar-data.js, content.js,
+   BACA-SAYA.txt, folder fonts, qr, video) ke halaman itu. Jangan seret foldernya sendiri.
+4. Tunggu semua file selesai terunggah, lalu klik "Commit changes".
+5. Buka Settings -> Pages. Pada "Branch" pilih "main" dan "/ (root)", klik Save.
+6. Tunggu 1-3 menit, lalu buka https://mohferyfauzi.github.io/rattib-wa-takallam/
+   Bila sudah tampil, semua kode QR di buku langsung berfungsi.
+
+MENGGANTI / MENAMBAH MEDIA
+- Video: ganti file di folder video/ dengan nama yang sama (bab1.mp4 dst.), misalnya versi
+  yang sudah diberi suara narasi.
+- Audio pelafalan memakai suara Arab bawaan peramban (Chrome/Edge). Kualitas terbaik di
+  Microsoft Edge (suara Arab "natural").
+- Murattal: Syaikh Mishary Rasyid Alafasy, dimuat dari everyayah.com.

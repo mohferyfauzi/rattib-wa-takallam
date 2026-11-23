@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rattib wa Takallam — mE-Book Qawā'id Nahwu Berbasis AR</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#f6f3ea;--paper:#fffdf7;--ink:#1d2a25;--muted:#5f6f68;--green:#14532d;--green2:#1d6b42;--gold:#c9952b;--line:#e3dccb;--ok:#15803d;--bad:#b91c1c}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Jakarta,system-ui,sans-serif;line-height:1.65}
+.ar{font-family:Naskh,"Noto Naskh Arabic","Traditional Arabic",serif;direction:rtl;unicode-bidi:isolate;font-size:1.3em;line-height:1.8}
+a{color:var(--green2)}
+/* layout */
+#side{position:fixed;top:0;left:0;bottom:0;width:290px;background:#0f2e22;color:#e6efe9;overflow:auto;padding:22px 16px;z-index:20;transition:transform .25s}
+#side h2{font-size:16px;margin:0 0 2px;color:#f3d48a;letter-spacing:.06em}
+#side .sar{font-family:Naskh,serif;font-size:22px;color:#fff;direction:rtl;text-align:right;margin-bottom:14px}
+#side a{display:block;color:#d6e4dc;text-decoration:none;padding:8px 12px;border-radius:10px;font-size:14px}
+#side a small{display:block;color:#93ad9f;font-size:12px}
+#side a:hover{background:rgba(255,255,255,.07)} #side a.on{background:#1d6b42;color:#fff}
+#side .grp{font-size:11px;letter-spacing:.12em;color:#8fb3a2;margin:14px 12px 4px}
+main{margin-left:290px;min-height:100vh;padding:34px 24px 80px}
+.page{max-width:900px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:40px 48px;box-shadow:0 10px 30px rgba(40,30,10,.06)}
+#menuBtn{display:none;position:fixed;top:12px;left:12px;z-index:30;background:#0f2e22;color:#fff;border:0;border-radius:10px;padding:8px 12px;font-size:18px}
+@media(max-width:900px){#side{transform:translateX(-100%)}#side.open{transform:none}main{margin-left:0;padding:60px 10px 60px}.page{padding:26px 18px}#menuBtn{display:block}}
+/* typography */
+h1{font-size:30px;margin:6px 0 4px;color:var(--green)} h2{font-size:22px;color:var(--green);margin:34px 0 10px;display:flex;align-items:center;gap:10px}
+h2 .ic{font-size:22px} h3{margin:20px 0 8px}
+.kicker{font-size:13px;letter-spacing:.12em;color:var(--gold);font-weight:800}
+.babar{font-family:Naskh,serif;font-size:40px;color:var(--ink);direction:rtl;text-align:right;margin:0}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:#f1ead8}
+.box{border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin:12px 0;background:#fff}
+.media{background:#0f2e22;color:#e6efe9;border:0}
+video{width:100%;border-radius:12px;background:#000;display:block}
+.btn{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--green2);background:#fff;color:var(--green2);padding:8px 14px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn:hover{background:#eaf5ee} .btn.primary{background:var(--green2);color:#fff} .btn.primary:hover{background:var(--green)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.ex{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px dashed var(--line);padding:10px 0}
+.ex:last-child{border-bottom:0}
+.ex .ar{font-size:1.6em;font-weight:700}
+.ex .id{color:var(--muted);font-size:14px}
+.syahid{background:linear-gradient(135deg,#0f2e22,#1d6b42);color:#fff;border-radius:18px;padding:22px 24px;margin:12px 0}
+.syahid > .ar{font-size:2em;font-weight:700;text-align:center;display:block}
+.syahid .note .ar{font-size:1.25em;color:#f3d48a}
+.syahid .ref{text-align:center;color:#f3d48a;font-weight:800;margin:4px 0 10px}
+.syahid .note{color:#d8eadf;font-size:15px}
+.syahid .btn{border-color:#f3d48a;color:#0f2e22;background:#f3d48a}
+.arcard{display:grid;grid-template-columns:1fr 160px;gap:18px;align-items:center;background:#fff8e6;border:2px solid #f0d58f;border-radius:18px;padding:18px 20px}
+.qr{width:150px;height:150px;border:2px dashed var(--gold);border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);padding:8px}
+@media(max-width:600px){.arcard{grid-template-columns:1fr}}
+details{border:1px solid var(--line);border-radius:14px;padding:10px 16px;background:#fbf8ef;margin:10px 0}
+summary{cursor:pointer;font-weight:700;color:var(--green2)}
+.q{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;background:#fff}
+.q .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.opt{font:inherit;border:1px solid var(--line);background:#faf7ef;border-radius:12px;padding:6px 14px;cursor:pointer;font-size:15px}
+.opt.ar{font-size:1.35em;padding:2px 16px}
+.opt.right{background:#dcfce7;border-color:var(--ok);font-weight:700} .opt.wrong{background:#fee2e2;border-color:var(--bad)}
+.fb{margin-top:6px;font-size:14px;font-weight:700} .fb.ok{color:var(--ok)} .fb.no{color:var(--bad)}
+textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px;min-height:44px;font-family:Naskh,Jakarta,serif;font-size:18px;direction:rtl}
+.ans{display:none;margin-top:8px;padding:8px 12px;background:#ecfdf3;border-radius:10px} .ans.show{display:block}
+.nav{display:flex;justify-content:space-between;margin-top:36px;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{background:#eef6f1;color:var(--green);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:700}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1d2a25;color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:90vw}
+#toast.on{opacity:1}
+/* cover */
+.cover{background:radial-gradient(800px 500px at 70% 10%,#1d6b42,#0f2e22 70%);color:#fff;border:0;text-align:center;padding:56px 40px;position:relative;overflow:hidden}
+.cover .car{font-family:Naskh,serif;font-size:34px;direction:rtl;color:#f3d48a;margin:0}
+.cover h1{color:#fff;font-size:52px;letter-spacing:.04em;margin:10px 0}
+.cover .sub{font-size:18px;max-width:640px;margin:0 auto;color:#d8eadf}
+.cover .cards{display:flex;gap:12px;justify-content:center;direction:rtl;margin:34px 0}
+.cover .cards span{background:#fffaf0;color:#1d2a25;font-family:Naskh,serif;font-weight:700;font-size:30px;padding:4px 20px 10px;border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.cover .cards span:nth-child(2){transform:translateY(-14px) rotate(-3deg)} .cover .cards span:nth-child(3){transform:rotate(4deg)}
+.cover .auth{font-size:15px;color:#e6efe9;margin-top:22px}
+.cover .inst{margin-top:20px;font-size:14px;color:#a9c7b8}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.icons div{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;font-size:14px}
+.icons b{display:block;font-size:22px}
+</style>
+</head>
+<body>
+<button id="menuBtn" onclick="document.getElementById('side').classList.toggle('open')">☰</button>
+<nav id="side"></nav>
+<main><div id="page"></div></main>
+<div id="toast"></div>
+<audio id="player"></audio>
+
+<script src="content.js"></script>
+<script src="ar-data.js"></script>
+<script>
+const B=window.BOOK, AR=window.AR_CHAPTERS;
+const $=s=>document.querySelector(s);
+const PAGES=[{k:"sampul",t:"Sampul"},{k:"pengantar",t:"Pengantar & Identitas"},{k:"petunjuk",t:"Petunjuk Multimedia"},
+  ...B.chapters.map(c=>({k:"bab-"+c.n,t:`Bab ${c.n} — ${c.id}`,ar:c.ar})),
+  {k:"evaluasi",t:"Evaluasi Akhir"},{k:"glosarium",t:"Glosarium"},{k:"penutup",t:"Daftar Pustaka & Penulis"}];
+
+/* ---------- navigasi ---------- */
+function buildSide(){
+  let h=`<h2>RATTIB WA TAKALLAM</h2><div class="sar">رَتِّبْ وَتَكَلَّمْ</div>`;
+  PAGES.forEach((p,i)=>{
+    if(i===3) h+=`<div class="grp">MATERI</div>`; if(i===11) h+=`<div class="grp">PENUTUP</div>`;
+    h+=`<a href="#${p.k}" data-k="${p.k}">${p.t}${p.ar?`<small class="ar" style="font-size:16px;text-align:left">${p.ar}</small>`:""}</a>`;
+  });
+  h+=`<div class="grp">MEDIA</div><a href="ar.html">✋ Buka Media AR</a>`;
+  $("#side").innerHTML=h;
+}
+function route(){
+  const k=(location.hash||"#sampul").slice(1), i=Math.max(0,PAGES.findIndex(p=>p.k===k));
+  document.querySelectorAll("#side a").forEach(a=>a.classList.toggle("on",a.dataset.k===PAGES[i].k));
+  $("#side").classList.remove("open"); stopAudio();
+  const k2=PAGES[i].k;
+  let html = k2==="sampul"?pCover(): k2==="pengantar"?pIntro(): k2==="petunjuk"?pGuide(): k2.startsWith("bab-")?pBab(B.chapters[+k2.split("-")[1]-1]):
+             k2==="evaluasi"?pEval(): k2==="glosarium"?pGlos(): pEnd();
+  const prev=PAGES[i-1], next=PAGES[i+1];
+  html+=`<div class="nav">${prev?`<a class="btn" href="#${prev.k}">← ${prev.t}</a>`:"<span></span>"}${next?`<a class="btn primary" href="#${next.k}">${next.t} →</a>`:""}</div>`;
+  $("#page").innerHTML=`<div class="page${k2==="sampul"?" cover":""}">${html}</div>`;
+  scrollTo(0,0); wire();
+}
+
+/* ---------- halaman ---------- */
+function pCover(){
+  return `<p class="car">${B.arTitle}</p><h1>RATTIB WA TAKALLAM</h1><p class="sub">${B.subtitle}</p>
+  <div class="cards"><span>هٰذَا</span><span>الْكِتَابُ</span><span>جَدِيْدٌ</span></div>
+  <p class="sub" style="font-size:15px">Media Guru PPG dalam Pembelajaran Bahasa Arab Tingkat MTs · 🎬 Video · 🔊 Audio · ✋ Augmented Reality</p>
+  <div class="auth"><b>Penulis:</b><br>${B.authors.join("<br>")}<br><br><b>Kolaborator Internasional:</b> ${B.collab}</div>
+  <div class="inst">Departemen Sastra Arab, Fakultas Sastra, Universitas Negeri Malang · 2026</div>
+  <div style="margin-top:28px"><a class="btn primary" style="background:#f3d48a;color:#0f2e22;border-color:#f3d48a" href="#pengantar">Mulai Membaca →</a></div>`;
+}
+function pIntro(){
+  return `<div class="kicker">PENGANTAR</div><h1>Kata Pengantar</h1>
+  <p class="ar" style="text-align:center;display:block;font-size:1.6em">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+  <p>Puji syukur kami panjatkan ke hadirat Allah Swt. atas terselesaikannya mE-Book <i>Rattib wa Takallam</i>. Salawat dan salam semoga tercurah kepada Nabi Muhammad saw.</p>
+  <p>mE-Book ini adalah luaran produk penelitian "Pengembangan Multimedia Electronic Book (mE-Book) Berbasis Augmented Reality sebagai Media Guru PPG dalam Pembelajaran Bahasa Arab". Pembelajaran bahasa Arab di program PPG masih banyak mengandalkan media dua dimensi seperti PDF, slide, dan buku cetak. Karena itu, setiap bab buku ini memadukan <b>teks, video animasi, audio, dan Augmented Reality berbasis gerakan tangan</b>.</p>
+  <p>Buku ini ditujukan bagi guru dan mahasiswa PPG Bahasa Arab sebagai bahan ajar sekaligus panduan mengajar qawā'id nahwu di Madrasah Tsanawiyah. Delapan babnya disusun mengikuti urutan <i>al-Taṭbīq al-Naḥwī</i> karya 'Abduh al-Rājiḥī. Contoh kalimat disesuaikan dengan kehidupan siswa MTs, dan setiap bab ditutup dengan syāhid dari Al-Qur'an.</p>
+  <p>Kami berterima kasih kepada Universitas Negeri Malang atas pendanaan penelitian ini, kepada para validator ahli, serta kepada Mi Guangli, Ph.D. atas kolaborasi akademiknya.</p>
+  <p>Malang, [tanggal] 2026<br><b>Tim Penulis</b></p>
+  <h2>Identitas Buku</h2>
+  <table><tr><th>Judul</th><td>${B.title}: ${B.subtitle}</td></tr><tr><th>Penulis</th><td>${B.authors.join("; ")}</td></tr>
+  <tr><th>Kolaborator internasional</th><td>${B.collab}</td></tr><tr><th>Validator ahli</th><td>[nama ahli materi], [nama ahli media], [nama ahli teknologi]</td></tr>
+  <tr><th>Penerbit / ISBN</th><td>[penerbit] / [ISBN]</td></tr><tr><th>Sumber dana</th><td>Penelitian Inovasi Pembelajaran PPG, Dana Non-APBN Universitas Negeri Malang Tahun 2026</td></tr></table>`;
+}
+function pGuide(){
+  return `<div class="kicker">PETUNJUK</div><h1>Petunjuk Penggunaan mE-Book</h1>
+  <p>Setiap bab berisi unsur multimedia berikut. Klik ikonnya untuk memakai.</p>
+  <div class="icons"><div><b>🎬</b>Video Materi animasi (± 45–55 detik) yang menjelaskan kaidah langkah demi langkah.</div>
+  <div><b>🔊</b>Audio pelafalan setiap contoh kalimat (suara Arab bawaan peramban).</div>
+  <div><b>📖</b>Audio murattal syāhid Al-Qur'an oleh Syaikh Mishary Rasyid Alafasy.</div>
+  <div><b>✋</b>Aktivitas AR: menyusun kartu kata Arab dengan gerakan tangan di depan webcam.</div>
+  <div><b>✅</b>Latihan interaktif dengan umpan balik langsung, serta Evaluasi Akhir dengan skor.</div>
+  <div><b>👩‍🏫</b>Langkah Mengajar untuk guru PPG (bisa dibuka-tutup).</div></div>
+  <h2>Perangkat yang dibutuhkan</h2>
+  <ul><li>Laptop/komputer dengan webcam, peramban Google Chrome atau Microsoft Edge terbaru.</li>
+  <li>Koneksi internet untuk audio murattal dan saat media AR pertama kali dibuka.</li>
+  <li>Proyektor/layar besar untuk kegiatan klasikal (dianjurkan); speaker untuk audio.</li>
+  <li>Ruangan cukup terang; jarak siswa ke kamera 0,5–1,5 meter.</li></ul>
+  <h2>Gerakan tangan pada Aktivitas AR</h2>
+  <table><tr><th>Gerakan</th><th>Fungsi</th></tr><tr><td>Tangan terbuka, digerakkan</td><td>Menggerakkan kursor lingkaran</td></tr>
+  <tr><td>✊ Genggam di atas kartu</td><td>Mengambil kartu kata</td></tr><tr><td>Tetap menggenggam, digerakkan</td><td>Membawa kartu</td></tr>
+  <tr><td>🖐️ Buka tangan di atas kotak jawaban</td><td>Meletakkan kartu</td></tr></table>
+  <p>Kotak jawaban diisi <b>dari kanan ke kiri</b>. Pada AR-1, kartu dimasukkan ke keranjang isim/fi'il/harf. Bila genggaman sulit terdeteksi, geser slider <i>Kepekaan genggam</i> ke kanan. Mode mouse tersedia bila kamera tidak ada.</p>
+  <p class="box">🔊 Bila tombol pelafalan tidak berbunyi, peramban belum memiliki suara Arab. Gunakan Chrome atau Edge yang tersambung internet, atau pasang paket suara Arab di pengaturan bahasa sistem operasi.</p>`;
+}
+function pBab(c){
+  const ar=AR[c.n-1];
+  const arRows = ar.mode==="kelompok"
+    ? ar.items.map(it=>`<tr><td>${it.id}</td><td class="ar">${it.cards.map(x=>x[0]).join(" · ")}</td><td>${ar.bins.map((b,i)=>`<span class="ar">${b}</span>: <span class="ar">${it.cards.filter(x=>x[1]===i).map(x=>x[0]).join("، ")}</span>`).join("<br>")}</td></tr>`).join("")
+    : ar.items.map((it,i)=>`<tr><td>${i+1}. ${it.id}</td><td class="ar">${[...it.words,...it.extra].join(" · ")}</td><td class="ar">${it.words.join(" ")}</td></tr>`).join("");
+  return `<div class="kicker">BAB ${c.n} · ${c.code}</div><p class="babar">${c.ar}</p><h1>${c.id}</h1><div class="chips"><span class="chip">${c.latin}</span><span class="chip">🎬 Video</span><span class="chip">🔊 Audio</span><span class="chip">📖 Murattal</span><span class="chip">✋ AR</span><span class="chip">✅ Latihan</span></div>
+  <h2>Capaian Pembelajaran</h2><ol>${c.capaian.map(x=>`<li>${x}</li>`).join("")}</ol>
+  <h2><span class="ic">🎬</span> Video Materi</h2>
+  <div class="box media"><video controls preload="metadata" src="video/bab${c.n}.mp4"></video>
+  <div style="font-size:13px;margin-top:8px;color:#a9c7b8">Video animasi Bab ${c.n}. Putar di awal pelajaran sebelum penjelasan kaidah.</div></div>
+  <h2><span class="ic">📘</span> Al-Qawā'id (Kaidah)</h2>${c.qawaid}
+  <h2><span class="ic">🔊</span> Al-Amtsilah (Contoh) — dengarkan pelafalannya</h2>
+  <div class="box">${c.contoh.map(x=>`<div class="ex"><div><div class="ar">${x.ar}</div><div class="id">${x.id}</div></div><button class="btn sm" data-say="${x.ar}">🔊 Dengar</button></div>`).join("")}</div>
+  <h2><span class="ic">📖</span> Syāhid Qur'ani — dengarkan murattal</h2>
+  ${c.syahid.map(s=>`<div class="syahid"><span class="ar">${s.ayah}</span><div class="ref">${s.ref}</div><div class="note">${s.note}</div>
+     <div style="text-align:center;margin-top:12px"><button class="btn" data-ayah="${s.s}:${s.a}">▶ Putar murattal ayat lengkap</button></div></div>`).join("")}
+  <h2><span class="ic">✋</span> Aktivitas AR — Kode ${c.code}</h2>
+  <div class="arcard"><div><b>Susun dengan gerakan tangan!</b><p style="margin:6px 0 12px">${ar.mode==="kelompok"?"Masukkan setiap kartu kata ke keranjang isim, fi'il, atau harf.":"Susun kartu kata menjadi kalimat yang benar. Setiap soal memuat kartu pengecoh."} Kotak jawaban diisi dari kanan ke kiri.</p>
+     <a class="btn primary" href="ar.html#${c.code.toLowerCase()}">✋ Buka Aktivitas ${c.code}</a></div>
+     <div class="qr" style="border:0;padding:0"><img src="qr/ar-${c.n}.png" alt="QR ${c.code}" style="width:150px;height:150px"></div></div>
+  <details><summary>Lihat daftar soal ${c.code} dan kuncinya</summary>
+  <table><tr><th>${ar.mode==="kelompok"?"Ronde":"Perintah"}</th><th>Kartu yang muncul</th><th>Jawaban benar</th></tr>${arRows}</table></details>
+  <h2><span class="ic">✅</span> Tadrībāt (Latihan Interaktif)</h2>${quiz(c.latihan,"l"+c.n)}
+  <details><summary>👩‍🏫 Langkah Mengajar untuk Guru (2 × 40 menit)</summary><ol>${c.langkah.map(x=>`<li>${x}</li>`).join("")}</ol></details>`;
+}
+function quiz(items,pfx,exam){
+  return items.map((q,i)=>{
+    const id=pfx+"-"+i;
+    if(q.open!==undefined) return `<div class="q"><div><b>${i+1}.</b> ${q.q}</div><textarea placeholder="Tulis jawabanmu di sini…"></textarea>
+      <button class="btn sm" style="margin-top:6px" data-show="${id}">Lihat jawaban</button><div class="ans" id="${id}">Jawaban: ${q.open}</div></div>`;
+    return `<div class="q" data-q="${id}" data-ans="${q.ans}" ${exam?'data-exam="1"':""}><div><b>${i+1}.</b> ${q.q}</div><div class="opts">${q.opts.map((o,j)=>`<button class="opt${q.ar?" ar":""}" data-j="${j}">${exam?String.fromCharCode(97+j)+". ":""}${o}</button>`).join("")}</div><div class="fb"></div></div>`;
+  }).join("");
+}
+function pEval(){
+  return `<div class="kicker">EVALUASI</div><h1>Evaluasi Akhir</h1><p>Pilih jawaban yang paling tepat, lalu klik <b>Periksa Jawaban</b>. Setiap jawaban benar bernilai 10. Nilai ≥ 75 berarti tuntas; di bawah itu, ulangi Aktivitas AR pada bab yang belum dikuasai.</p>
+  ${quiz(B.evaluasi,"ev",true)}<div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" id="cekEval">Periksa Jawaban</button><button class="btn" id="ulangEval">Ulangi</button><b id="nilai"></b></div>`;
+}
+function pGlos(){ return `<div class="kicker">GLOSARIUM</div><h1>Glosarium</h1><table><tr><th>Istilah</th><th>Pengertian</th></tr>${B.glosarium.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join("")}</table>`; }
+function pEnd(){
+  return `<div class="kicker">PENUTUP</div><h1>Daftar Pustaka</h1><ul>${B.pustaka.map(x=>`<li>${x}</li>`).join("")}</ul>
+  <h2>Sumber Audio dan Media</h2><ul><li>Audio murattal: Syaikh Mishary Rasyid Alafasy (128 kbps), dimuat dari everyayah.com.</li><li>Pelacakan tangan: Google MediaPipe Hand Landmarker.</li><li>Video materi: animasi karya tim penulis.</li></ul>
+  <h2>Tentang Penulis</h2>
+  <p><b>Dra. Hj. Nur Anisah Ridwan, M.Pd.</b> adalah dosen Departemen Sastra Arab, Fakultas Sastra, Universitas Negeri Malang, dan ketua tim penelitian mE-Book berbasis AR untuk guru PPG Bahasa Arab. [Lengkapi bidang keahlian.]</p>
+  <p><b>Moh. Fery Fauzi, S.Pd., M.Pd.I.</b> adalah dosen Departemen Sastra Arab, Fakultas Sastra, Universitas Negeri Malang, pada kelompok bidang keahlian Pendidikan Bahasa Arab, dan sedang menempuh studi doktoral pendidikan bahasa Arab. Ia menekuni desain pembelajaran imersif bahasa dan budaya Arab, termasuk AR, VR, dan metaverse.</p>
+  <p><b>Herlina Ike Oktaviani, S.Pd., M.Pd.</b> adalah dosen Universitas Negeri Malang dan anggota tim peneliti. [Lengkapi departemen dan bidang keahlian.]</p>
+  <p><b>Alfiyah Husna Amalina Sugiardi, Elis Agustina Lestari, dan Nur Izzatul Islamiyah</b> adalah mahasiswa Universitas Negeri Malang yang terlibat dalam pengembangan dan uji kelayakan mE-Book ini. [Lengkapi program studi.]</p>
+  <p><b>Mi Guangli, Ph.D.</b> adalah akademisi Shandong Youth University of Political Science, China, dan kolaborator internasional penelitian ini.</p>`;
+}
+
+/* ---------- interaksi ---------- */
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("on"),3200)}
+let voices=[]; function loadVoices(){try{voices=speechSynthesis.getVoices()}catch(e){}} loadVoices(); try{speechSynthesis.onvoiceschanged=loadVoices}catch(e){}
+function say(t){
+  try{
+    const v=voices.find(v=>/^ar/i.test(v.lang));
+    if(!v) toast("Suara Arab belum tersedia di peramban ini — lihat Petunjuk Multimedia.");
+    const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=.8; if(v)u.voice=v; speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){toast("Peramban ini tidak mendukung audio pelafalan.")}
+}
+const player=$("#player"); let playingBtn=null;
+function stopAudio(){player.pause(); try{speechSynthesis.cancel()}catch(e){} if(playingBtn){playingBtn.textContent="▶ Putar murattal ayat lengkap";playingBtn=null}}
+function murattal(btn,s,a){
+  if(playingBtn===btn){stopAudio();return} stopAudio();
+  const p=n=>String(n).padStart(3,"0");
+  player.src=`https://everyayah.com/data/Alafasy_128kbps/${p(s)}${p(a)}.mp3`;
+  player.play().then(()=>{playingBtn=btn;btn.textContent="⏸ Hentikan murattal"}).catch(()=>toast("Murattal tidak dapat diputar. Pastikan perangkat tersambung internet."));
+}
+player.onended=()=>stopAudio();
+function wire(){
+  document.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
+  document.querySelectorAll("[data-ayah]").forEach(b=>b.onclick=()=>{const [s,a]=b.dataset.ayah.split(":");murattal(b,+s,+a)});
+  document.querySelectorAll("[data-show]").forEach(b=>b.onclick=()=>document.getElementById(b.dataset.show).classList.toggle("show"));
+  document.querySelectorAll(".q[data-q]").forEach(q=>{
+    const ans=+q.dataset.ans, exam=q.dataset.exam;
+    q.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{
+      if(exam){ q.querySelectorAll(".opt").forEach(x=>x.classList.remove("right","wrong")); o.classList.add("right"); q.dataset.pick=o.dataset.j; o.style.background="#e0ecff";o.style.borderColor="#3b6fd8"; q.querySelectorAll(".opt").forEach(x=>{if(x!==o){x.style.background="";x.style.borderColor=""}}); return; }
+      if(q.dataset.done) return;
+      const ok=+o.dataset.j===ans; o.classList.add(ok?"right":"wrong");
+      const fb=q.querySelector(".fb");
+      if(ok){fb.textContent="✔ Benar! أَحْسَنْتَ";fb.className="fb ok";q.dataset.done=1}
+      else{fb.textContent="✘ Belum tepat, coba lagi.";fb.className="fb no"}
+    });
+  });
+  const ce=$("#cekEval");
+  if(ce){ ce.onclick=()=>{ let sc=0; document.querySelectorAll(".q[data-exam]").forEach(q=>{
+      const pick=q.dataset.pick, ans=+q.dataset.ans; const os=q.querySelectorAll(".opt");
+      os.forEach(o=>{o.style.background="";o.style.borderColor="";o.classList.remove("right","wrong")});
+      os[ans].classList.add("right"); if(pick!==undefined&&+pick!==ans) os[+pick].classList.add("wrong"); if(+pick===ans&&pick!==undefined) sc+=10; });
+      $("#nilai").textContent=`Nilai: ${sc} — ${sc>=75?"Tuntas 🎉":"Belum tuntas, ulangi Aktivitas AR bab yang belum dikuasai."}`; };
+    $("#ulangEval").onclick=()=>route(); }
+}
+buildSide(); addEventListener("hashchange",route); route();
+</script>
+</body>
+</html>
